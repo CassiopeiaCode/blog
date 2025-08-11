@@ -18,7 +18,6 @@ import { remarkContainerDirectives } from './src/plugins/remark-container-direct
 import { remarkLeafDirectives } from './src/plugins/remark-leaf-directives.mjs'
 import { remarkReadingTime } from './src/plugins/remark-reading-time.mjs'
 
-const siteUrl = themeConfig.site.url
 const defaultLocale = themeConfig.global.locale
 const imageHostURL = themeConfig.preload?.imageHostURL
 const imageConfig = imageHostURL
@@ -26,7 +25,7 @@ const imageConfig = imageHostURL
   : {}
 
 export default defineConfig({
-  site: siteUrl,
+  site: 'https://blog.bytebender.com',
   base: '/',
   trailingSlash: 'always',
   prefetch: {
