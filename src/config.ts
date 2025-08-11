@@ -168,7 +168,7 @@ export const themeConfig: ThemeConfig = {
       },
       {
         name: 'Email',
-        url: 'email@radishzz.cc',
+        url: 'me@o0o.moe',
       },
       // {
       //   name: 'X',
