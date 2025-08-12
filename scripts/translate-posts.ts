@@ -3,13 +3,13 @@ import path from 'node:path'
 import process from 'node:process'
 import matter from 'gray-matter'
 import OpenAI from 'openai'
-import { supportedLangs } from '../src/i18n/config'
+import { allLocales } from '../src/config'
 import 'dotenv/config'
 
 // --- Configuration ---
 const POSTS_DIR = 'src/content/posts'
 const SOURCE_LANG = 'zh' // Source language files are in the root of POSTS_DIR
-const TARGET_LANGS = supportedLangs.filter(lang => lang !== SOURCE_LANG)
+const TARGET_LANGS = allLocales.filter(lang => lang !== SOURCE_LANG)
 
 const model = process.env.OPENAI_MODEL
 const openai = new OpenAI({
