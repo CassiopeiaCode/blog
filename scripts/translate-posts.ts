@@ -91,12 +91,24 @@ async function translatePost(sourcePath: string) {
       const translatedContent = await translateText(sourceContent, lang, model!)
 
       if (translatedContent) {
-        // Add the lang tag and copy abbrlink/translationKey to the translated frontmatter
         const { data: translatedFrontmatter, content: translatedBody } = matter(translatedContent)
-        translatedFrontmatter.lang = lang
-        translatedFrontmatter.abbrlink = sourceFrontmatter.abbrlink
-        translatedFrontmatter.translationKey = sourceFrontmatter.translationKey
-        const newContent = matter.stringify(translatedBody, translatedFrontmatter)
+
+        // Ensure title and description are properly quoted if they contain special characters
+        if (translatedFrontmatter.title && typeof translatedFrontmatter.title === 'string' && translatedFrontmatter.title.includes(':')) {
+          translatedFrontmatter.title = `"${translatedFrontmatter.title.replace(/"/g, '\\"')}"`
+        }
+        if (translatedFrontmatter.description && typeof translatedFrontmatter.description === 'string' && translatedFrontmatter.description.includes(':')) {
+          translatedFrontmatter.description = `"${translatedFrontmatter.description.replace(/"/g, '\\"')}"`
+        }
+
+        // Re-parse the potentially fixed frontmatter
+        const fixedContent = matter.stringify(translatedBody, translatedFrontmatter)
+        const { data: finalFrontmatter, content: finalBody } = matter(fixedContent)
+
+        finalFrontmatter.lang = lang
+        finalFrontmatter.abbrlink = sourceFrontmatter.abbrlink
+        finalFrontmatter.translationKey = sourceFrontmatter.translationKey
+        const newContent = matter.stringify(finalBody, finalFrontmatter)
 
         await fs.writeFile(targetPath, newContent)
         console.log(`  - Successfully wrote translation to: ${targetPath}`)
@@ -126,7 +138,7 @@ async function translateText(text: string, targetLang: string, model: string): P
       messages: [
         {
           role: 'system',
-          content: `You are a professional translator. Translate the following Markdown content into ${targetLang}. Preserve the Markdown formatting and all frontmatter fields. Only translate the values of the frontmatter fields (like 'title' and 'description'), not the keys. Do not add any extra text or explanations before or after the markdown content.`,
+          content: `You are a professional translator. Translate the following Markdown content into ${targetLang}. Preserve the Markdown formatting and all frontmatter fields. Only translate the values of the frontmatter fields (like 'title' and 'description'), not the keys. Do not add any extra text or explanations before or after the markdown content. Ensure that if a frontmatter value contains a colon, it is properly quoted.`,
         },
         {
           role: 'user',
