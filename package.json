@@ -15,7 +15,8 @@
     "apply-lqip": "tsx scripts/apply-lqip.ts",
     "format-posts": "tsx scripts/format-posts.ts",
     "update-theme": "tsx scripts/update-theme.ts",
-    "translate": "tsx scripts/translate-posts.ts"
+    "translate": "tsx scripts/translate-posts.ts",
+    "migrate-posts": "tsx scripts/migrate-posts.ts"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.3",
