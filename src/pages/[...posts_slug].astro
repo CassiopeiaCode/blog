@@ -25,12 +25,12 @@ export async function getStaticPaths() {
   // Set is used to store the supported languages for each post
   const slugToLangsMap = posts.reduce((map, post) => {
     const slug = post.data.abbrlink || post.id
-    const lang = post.data.lang
+    const lang = post.data.lang || defaultLocale
 
     if (!map.has(slug)) {
-      map.set(slug, new Set(lang ? [lang] : allLocales))
+      map.set(slug, new Set([lang]))
     }
-    else if (lang) {
+    else {
       map.get(slug)?.add(lang)
     }
 
