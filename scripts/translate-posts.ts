@@ -11,11 +11,15 @@ const POSTS_DIR = 'src/content/posts'
 const SOURCE_LANG = 'zh'
 const TARGET_LANGS = supportedLangs.filter(lang => lang !== SOURCE_LANG)
 
+const model = process.env.OPENAI_MODEL
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_BASE_URL,
+  baseURL: process.env.OPENAI_BASE_URL?.replace(/\/$/, ''),
+  fetch: (url, options) => {
+    console.log(`- Sending API request to: ${url}`)
+    return fetch(url, options)
+  },
 })
-const model = process.env.OPENAI_MODEL || 'gpt-4-turbo'
 
 /**
  * Finds all source language post files in the posts directory.
@@ -55,14 +59,14 @@ async function translatePost(sourcePath: string) {
 
     if (needsTranslation) {
       console.log(`  - Translating to ${lang}...`)
-      const translatedContent = await translateText(sourceContent, lang)
+      const translatedContent = await translateText(sourceContent, lang, model!)
 
       if (translatedContent) {
         await fs.writeFile(targetPath, translatedContent)
         console.log(`  - Successfully wrote translation to: ${targetPath}`)
       }
       else {
-        console.error(`  - Failed to translate to ${lang}.`)
+        console.error(`  - Failed to translate to ${lang}. Please check your API key, model name, and endpoint URL.`)
       }
     }
     else {
@@ -77,7 +81,7 @@ async function translatePost(sourcePath: string) {
  * @param targetLang - The target language code.
  * @returns A promise that resolves to the translated text, or null if an error occurs.
  */
-async function translateText(text: string, targetLang: string): Promise<string | null> {
+async function translateText(text: string, targetLang: string, model: string): Promise<string | null> {
   try {
     const response = await openai.chat.completions.create({
       model,
@@ -103,11 +107,13 @@ async function translateText(text: string, targetLang: string): Promise<string |
 
 // --- Main Function ---
 async function main() {
-  if (!process.env.OPENAI_API_KEY) {
-    console.error('Error: OPENAI_API_KEY is not set in your .env file.')
-    console.error('Please create a .env file and add your OpenAI API key.')
+  if (!process.env.OPENAI_API_KEY || !model) {
+    console.error(
+      'Error: Make sure OPENAI_API_KEY and OPENAI_MODEL are set in your .env file.',
+    )
     return
   }
+
   console.log('Starting translation process...')
   const sourcePosts = await findSourcePosts()
 
