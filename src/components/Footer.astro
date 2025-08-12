@@ -32,7 +32,7 @@ const footerLinkClass = 'highlight-hover py-0.8 transition-colors after:bottom-0
   <p>
     {links.map((link, index) => (
       <>
-        <a class={footerLinkClass} href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a>&nbsp;{index < links.length - 1 && '/'}
+        <a class={footerLinkClass} href={link.url} target="_blank" rel="noopener noreferrer nofollow">{link.name}</a>&nbsp;{index < links.length - 1 && '/'}
       </>
     ))}
   </p>
@@ -42,6 +42,6 @@ const footerLinkClass = 'highlight-hover py-0.8 transition-colors after:bottom-0
   </p>
 
   <p>
-    Powered by <a class={footerLinkClass} href="https://astro.build/" target="_blank" rel="noopener noreferrer">Astro</a> and <a class={footerLinkClass} href="https://github.com/radishzzz/astro-theme-retypeset" target="_blank" rel="noopener noreferrer">Retypeset</a>
+    Powered by <a class={footerLinkClass} href="https://astro.build/" target="_blank" rel="noopener noreferrer nofollow">Astro</a> and <a class={footerLinkClass} href="https://github.com/radishzzz/astro-theme-retypeset" target="_blank" rel="noopener noreferrer nofollow">Retypeset</a>
   </p>
 </footer>
