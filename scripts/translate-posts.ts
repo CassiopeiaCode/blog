@@ -87,34 +87,50 @@ async function translatePost(sourcePath: string) {
     }
 
     if (needsTranslation) {
-      console.log(`  - Translating to ${lang}...`)
-      const translatedContent = await translateText(sourceContent, lang, model!)
+      const MAX_RETRIES = 10
+      for (let i = 0; i < MAX_RETRIES; i++) {
+        try {
+          console.log(`  - Translating to ${lang} (Attempt ${i + 1}/${MAX_RETRIES})...`)
+          const translatedContent = await translateText(sourceContent, lang, model!)
 
-      if (translatedContent) {
-        const { data: translatedFrontmatter, content: translatedBody } = matter(translatedContent)
+          if (!translatedContent)
+            throw new Error('API returned empty content.')
 
-        // Ensure title and description are properly quoted if they contain special characters
-        if (translatedFrontmatter.title && typeof translatedFrontmatter.title === 'string' && translatedFrontmatter.title.includes(':')) {
-          translatedFrontmatter.title = `"${translatedFrontmatter.title.replace(/"/g, '\\"')}"`
+          // This is where frontmatter parsing happens, which the user said could fail
+          const { data: translatedFrontmatter, content: translatedBody } = matter(translatedContent)
+
+          // Ensure title and description are properly quoted if they contain special characters
+          if (translatedFrontmatter.title && typeof translatedFrontmatter.title === 'string' && translatedFrontmatter.title.includes(':')) {
+            translatedFrontmatter.title = `"${translatedFrontmatter.title.replace(/"/g, '\\"')}"`
+          }
+          if (translatedFrontmatter.description && typeof translatedFrontmatter.description === 'string' && translatedFrontmatter.description.includes(':')) {
+            translatedFrontmatter.description = `"${translatedFrontmatter.description.replace(/"/g, '\\"')}"`
+          }
+
+          // Re-parse the potentially fixed frontmatter
+          const fixedContent = matter.stringify(translatedBody, translatedFrontmatter)
+          const { data: finalFrontmatter, content: finalBody } = matter(fixedContent)
+
+          finalFrontmatter.lang = lang
+          finalFrontmatter.abbrlink = sourceFrontmatter.abbrlink
+          finalFrontmatter.translationKey = sourceFrontmatter.translationKey
+          const newContent = matter.stringify(finalBody, finalFrontmatter)
+
+          await fs.writeFile(targetPath, newContent)
+          console.log(`  - Successfully wrote translation to: ${targetPath}`)
+          break // Exit retry loop on success
         }
-        if (translatedFrontmatter.description && typeof translatedFrontmatter.description === 'string' && translatedFrontmatter.description.includes(':')) {
-          translatedFrontmatter.description = `"${translatedFrontmatter.description.replace(/"/g, '\\"')}"`
+        catch (error) {
+          console.error(`\n  - Attempt ${i + 1} for '${lang}' failed: ${(error as Error).message}`)
+          if (i < MAX_RETRIES - 1) {
+            const delay = (2 ** i) * 1000 // Exponential backoff: 1s, 2s, 4s...
+            console.log(`  - Retrying in ${delay / 1000}s...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+          }
+          else {
+            console.error(`  - Failed to translate to ${lang} after ${MAX_RETRIES} attempts.`)
+          }
         }
-
-        // Re-parse the potentially fixed frontmatter
-        const fixedContent = matter.stringify(translatedBody, translatedFrontmatter)
-        const { data: finalFrontmatter, content: finalBody } = matter(fixedContent)
-
-        finalFrontmatter.lang = lang
-        finalFrontmatter.abbrlink = sourceFrontmatter.abbrlink
-        finalFrontmatter.translationKey = sourceFrontmatter.translationKey
-        const newContent = matter.stringify(finalBody, finalFrontmatter)
-
-        await fs.writeFile(targetPath, newContent)
-        console.log(`  - Successfully wrote translation to: ${targetPath}`)
-      }
-      else {
-        console.error(`  - Failed to translate to ${lang}. Please check your API key, model name, and endpoint URL.`)
       }
     }
     else {
@@ -129,38 +145,37 @@ async function translatePost(sourcePath: string) {
  * Translates text using the OpenAI API.
  * @param text - The text to translate (including frontmatter).
  * @param targetLang - The target language code.
- * @returns A promise that resolves to the translated text, or null if an error occurs.
+ * @returns A promise that resolves to the translated text. Throws an error if the API call fails.
  */
-async function translateText(text: string, targetLang: string, model: string): Promise<string | null> {
-  try {
-    const stream = await openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: `You are a professional translator. Translate the following Markdown content into ${targetLang}. Preserve the Markdown formatting and all frontmatter fields. Only translate the values of the frontmatter fields (like 'title' and 'description'), not the keys. Do not add any extra text or explanations before or after the markdown content. Ensure that if a frontmatter value contains a colon, it is properly quoted.`,
-        },
-        {
-          role: 'user',
-          content: text,
-        },
-      ],
-      temperature: 0.7,
-      stream: true,
-    })
+async function translateText(text: string, targetLang: string, model: string): Promise<string> {
+  const stream = await openai.chat.completions.create({
+    model,
+    messages: [
+      {
+        role: 'system',
+        content: `You are an expert translator specializing in technical documentation. Your task is to translate the user-provided Markdown content into ${targetLang}.
+Follow these rules STRICTLY:
+1.  Translate ONLY the values of the frontmatter fields (e.g., 'title', 'description'). NEVER translate the keys.
+2.  Preserve ALL original Markdown formatting and structure.
+3.  CRITICAL: If any frontmatter value (like 'title' or 'description') contains a colon (':'), you MUST enclose the entire value in double quotes (""). For example, if the translated title is "A: B", the output must be "title: "A: B"". Failure to do so will break the parsing process.
+4.  Do not add any extra text, explanations, or markdown formatting before or after the translated content. The output must be ONLY the translated markdown file content.`,
+      },
+      {
+        role: 'user',
+        content: text,
+      },
+    ],
+    temperature: 0.7,
+    stream: true,
+  })
 
-    let translatedContent = ''
-    for await (const chunk of stream) {
-      process.stdout.write('.')
-      translatedContent += chunk.choices[0]?.delta?.content || ''
-    }
-    process.stdout.write('\n')
-    return translatedContent
+  let translatedContent = ''
+  for await (const chunk of stream) {
+    process.stdout.write('.')
+    translatedContent += chunk.choices[0]?.delta?.content || ''
   }
-  catch (error) {
-    console.error('\nError during OpenAI API call:', error)
-    return null
-  }
+  process.stdout.write('\n')
+  return translatedContent
 }
 
 // --- Main Function ---
