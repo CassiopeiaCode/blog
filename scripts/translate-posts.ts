@@ -42,18 +42,32 @@ async function translatePost(sourcePath: string) {
   let sourceContent = await fs.readFile(sourcePath, 'utf-8')
   const { data: sourceFrontmatter, content: sourceBody } = matter(sourceContent)
 
-  // Ensure the source post has the correct language tag
+  const sourceFileName = path.basename(sourcePath, path.extname(sourcePath))
+
+  // Ensure the source post has the correct language tag, abbrlink, and translationKey
+  let needsUpdate = false
   if (sourceFrontmatter.lang !== SOURCE_LANG) {
-    console.log(`- Adding missing '${SOURCE_LANG}' lang tag to source file.`)
     sourceFrontmatter.lang = SOURCE_LANG
+    needsUpdate = true
+  }
+  if (!sourceFrontmatter.abbrlink) {
+    sourceFrontmatter.abbrlink = sourceFileName
+    needsUpdate = true
+  }
+  if (!sourceFrontmatter.translationKey) {
+    sourceFrontmatter.translationKey = sourceFileName
+    needsUpdate = true
+  }
+
+  if (needsUpdate) {
+    console.log(`- Updating frontmatter for source file: ${sourcePath}`)
     sourceContent = matter.stringify(sourceBody, sourceFrontmatter)
     await fs.writeFile(sourcePath, sourceContent)
   }
 
-  for (const lang of TARGET_LANGS) {
-    const sourceFileName = path.basename(sourcePath)
+  const translationPromises = TARGET_LANGS.map(async (lang) => {
     const targetDir = path.join(POSTS_DIR, lang)
-    const targetPath = path.join(targetDir, sourceFileName)
+    const targetPath = path.join(targetDir, path.basename(sourcePath))
 
     // Ensure target directory exists
     await fs.mkdir(targetDir, { recursive: true })
@@ -77,9 +91,11 @@ async function translatePost(sourcePath: string) {
       const translatedContent = await translateText(sourceContent, lang, model!)
 
       if (translatedContent) {
-        // Add the lang tag to the translated frontmatter
+        // Add the lang tag and copy abbrlink/translationKey to the translated frontmatter
         const { data: translatedFrontmatter, content: translatedBody } = matter(translatedContent)
         translatedFrontmatter.lang = lang
+        translatedFrontmatter.abbrlink = sourceFrontmatter.abbrlink
+        translatedFrontmatter.translationKey = sourceFrontmatter.translationKey
         const newContent = matter.stringify(translatedBody, translatedFrontmatter)
 
         await fs.writeFile(targetPath, newContent)
@@ -92,7 +108,9 @@ async function translatePost(sourcePath: string) {
     else {
       console.log(`- Translation for '${lang}' is up to date. Skipping.`)
     }
-  }
+  })
+
+  await Promise.all(translationPromises)
 }
 
 /**
@@ -152,9 +170,8 @@ async function main() {
 
   console.log(`Found ${sourcePosts.length} source post(s).`)
 
-  for (const postPath of sourcePosts) {
-    await translatePost(postPath)
-  }
+  const allPromises = sourcePosts.map(postPath => translatePost(postPath))
+  await Promise.all(allPromises)
 
   console.log('\nTranslation process finished.')
 }

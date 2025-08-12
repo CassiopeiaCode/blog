@@ -10,6 +10,8 @@ tags:
   - 随笔
   - 长文
 lang: zh
+abbrlink: can-we-still-hear-each-other
+translationKey: can-we-still-hear-each-other
 ---
 
 我得承认，在决定写下“共情”这个题目时，我的手指在键盘上空悬了很久。用一篇长文去解剖这个几乎已被说烂的词，本身就像一场注定失败的冒险，有好几次，我差点就想关掉文档，去写点更轻松的东西。

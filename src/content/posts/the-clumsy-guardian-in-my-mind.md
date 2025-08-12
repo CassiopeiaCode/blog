@@ -10,6 +10,8 @@ tags:
   - 创伤
   - 和解
 lang: zh
+abbrlink: the-clumsy-guardian-in-my-mind
+translationKey: the-clumsy-guardian-in-my-mind
 ---
 
 > **作者按：** 这是一篇很长的文章，近万字。它更像一次漫长的内心探索，而不是一篇快餐读物。我不期望你一次读完，或许你可以把它收藏起来，在某个安静的午后，泡上一杯茶，慢慢地读。愿我的文字，能像一位安静的同路人，陪伴你走一段看见自己、理解自己、并最终与自己温柔和解的旅程。

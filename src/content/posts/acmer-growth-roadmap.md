@@ -8,6 +8,8 @@ tags:
   - 学习路线
   - 思考
 lang: zh
+abbrlink: acmer-growth-roadmap
+translationKey: acmer-growth-roadmap
 ---
 
 ## 你的北极星在何方？
