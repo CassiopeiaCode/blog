@@ -122,7 +122,7 @@ export const themeConfig: ThemeConfig = {
     verification: {
       // google search console
       // https://search.google.com/search-console
-      google: 'AUCrz5F1e5qbnmKKDXl2Sf8u6y0kOpEO1wLs6HMMmlM',
+      google: 'enRelzqlOn7JulrRBQOreSWrgMs0LP3Z8gpOXMYJCFI',
       // bing webmaster tools
       // https://www.bing.com/webmasters
       bing: '64708CD514011A7965C84DDE1D169F87',
