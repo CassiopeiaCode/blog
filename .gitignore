@@ -3,6 +3,8 @@ dist/
 .output/
 .astro/
 
+.temp/
+
 # dependencies
 node_modules/
 
