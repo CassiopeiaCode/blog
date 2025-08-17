@@ -697,4 +697,3 @@ translationKey: we-and-our-inner-architecture
 从旋转木马上下来。
 
 然后，开始你自己的、独一无二的、伟大的建造之旅吧。
-</gale>
