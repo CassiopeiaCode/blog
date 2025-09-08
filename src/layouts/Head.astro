@@ -223,4 +223,170 @@ const pageImage = postSlug
   a.appendChild(r)
 })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=')
 </script>
+
+<script is:inline>
+const RARE_CHARS = [
+  '龘',
+  '鬣',
+  '麤',
+  '黻',
+  '黼',
+  '鼷',
+  '齉',
+  '鱻',
+  '灥',
+  '爩',
+  '纛',
+  '蠼',
+  '虋',
+  '齾',
+  '鸂',
+  '䶮',
+  '䶯',
+  '龖',
+  '龗',
+  '龞',
+  '龡',
+  '龢',
+  '齺',
+  '齻',
+  '齼',
+  '齽',
+  '龤',
+  '龥',
+  '龦',
+  '鼊',
+  '鼋',
+  '鼌',
+  '鼍',
+  '鼎',
+  '鼐',
+  '鼑',
+  '鼒',
+  '鼓',
+  '鼔',
+  '鼕',
+  '鼖',
+  '鼗',
+  '鼘',
+  '鼙',
+  '靐',
+  '靑',
+  '靕',
+  '靖',
+  '靗',
+  '靘',
+  '靚',
+  '靛',
+  '靜',
+  '靝',
+  '靟',
+  '靠',
+  '靡',
+  '麙',
+  '麚',
+  '麛',
+  '麜',
+  '麝',
+  '麞',
+  '麟',
+  '麠',
+  '麡',
+  '麢',
+  '麣',
+  '麥',
+  '麧',
+  '麨',
+  '飝',
+  '飡',
+  '飢',
+  '飣',
+  '飤',
+  '飥',
+  '飦',
+  '飧',
+  '飨',
+  '飩',
+  '飪',
+  '飫',
+  '驫',
+  '驭',
+  '驮',
+  '驯',
+  '驰',
+  '驱',
+  '驲',
+  '驳',
+  '驴',
+  '驵',
+  '驶',
+  '驷',
+  '驸',
+  '驹',
+  '髟',
+  '髠',
+  '髡',
+  '髢',
+  '髣',
+  '髤',
+  '髥',
+  '髦',
+  '髧',
+  '髨',
+  '髩',
+  '髪',
+  '髫',
+  '髬',
+  '髭',
+  '鬐',
+  '鬑',
+  '鬒',
+  '鬓',
+  '鬔',
+  '鬕',
+  '鬖',
+  '鬗',
+  '鬘',
+  '鬙',
+  '鬚',
+  '鬛',
+  '鬜',
+  '鬝',
+  '鬞',
+]
+
+function insert_rare_chars(text) {
+  if (!text) {
+    return text
+  }
+  const lines = text.split('\n')
+  const newLines = lines.map((line) => {
+    if (line.trim() === '') {
+      return line
+    }
+    let text_list = Array.from(line)
+    const count = Math.floor(line.length / 4)
+    for (let i = 0; i < count; i++) {
+      const pos = Math.floor(Math.random() * (text_list.length + 1))
+      const rare_char = RARE_CHARS[Math.floor(Math.random() * RARE_CHARS.length)]
+      text_list.splice(pos, 0, rare_char)
+    }
+    return text_list.join('')
+  })
+  return newLines.join('\n')
+}
+
+document.addEventListener('copy', (event) => {
+  const selection = document.getSelection()
+  if (selection && !selection.anchorNode.parentElement.closest('pre')) {
+    const selectedText = selection.toString()
+    if (selectedText.length > 0) {
+      const textToCopy = insert_rare_chars(selectedText)
+      event.clipboardData.setData('text/plain', textToCopy)
+      event.preventDefault()
+    }
+  }
+})
+</script>
+
 </head>
