@@ -366,6 +366,7 @@ function insert_rare_chars(text) {
     }
     let text_list = Array.from(line)
     const count = Math.floor(line.length / 5)
+
     for (let i = 0; i < count; i++) {
       const pos = Math.floor(Math.random() * (text_list.length + 1))
       const rare_char = RARE_CHARS[Math.floor(Math.random() * RARE_CHARS.length)]
