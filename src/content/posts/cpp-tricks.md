@@ -1,5 +1,5 @@
 ---
-title: C++ 技巧翻译
+title: C++ 技巧
 description: 这是一篇来自 Codeforces 的经典博文，作者 HosseinYousefi，涵盖了许多实用的 C++ 编程技巧，包括初始化列表、宏技巧、内置函数、C++11 新特性等内容。
 published: 2026-03-14T00:00:00.000Z
 tags:
